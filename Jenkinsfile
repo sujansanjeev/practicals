@@ -1,38 +1,34 @@
 pipeline {
     agent any
-
     environment {
         DOCKER_IMAGE = "flask_sql_app"
-        DOCKER_CREDENTIALS_ID = 'docker'  // Replace with the credentials ID you created
+        DOCKERHUB_CREDENTIALS = credentials('docker')
     }
-
     stages {
         stage('Clone repository') {
             steps {
                 git branch: 'main', url: 'https://github.com/sujansanjeev/practicals.git'
             }
         }
-
-        stage('Login to Docker Hub') {
+        stage('Docker Login') {
             steps {
                 script {
-                    // Use Docker Hub credentials to log in
-                    docker.withRegistry('', DOCKER_CREDENTIALS_ID) {
-                        echo 'Logged into Docker Hub to prevent rate limit issues'
-                    }
+                    sh '''
+                        echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin
+                    '''
                 }
             }
         }
-
         stage('Build Docker Images') {
             steps {
                 script {
-                    // Add --pull option to force pulling the latest image
-                    sh 'docker-compose build --pull'
+                    sh '''
+                        docker-compose pull
+                        docker-compose build --no-cache
+                    '''
                 }
             }
         }
-
         stage('Deploy Containers') {
             steps {
                 script {
@@ -41,11 +37,11 @@ pipeline {
             }
         }
     }
-
     post {
         always {
             script {
                 sh 'docker-compose down'
+                sh 'docker logout'
             }
         }
     }
