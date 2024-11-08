@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/python:3.8
+FROM mcr.microsoft.com/python:latest
 
 
 WORKDIR /app
