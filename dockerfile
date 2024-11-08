@@ -1,4 +1,5 @@
-FROM python:3.8-slim
+FROM gcr.io/google-appengine/python:3.8
+
 
 WORKDIR /app
 COPY . /app
