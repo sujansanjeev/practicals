@@ -1,5 +1,4 @@
 version: '3.8'
-
 services:
   web:
     build: .
@@ -8,11 +7,29 @@ services:
     depends_on:
       - db
     environment:
-      - DATABASE_URL=sqlite:///database.db
+      - MYSQL_HOST=db
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=root
+      - MYSQL_DB=mydb
+    networks:
+      - app-network
 
   db:
-    image: nouchka/sqlite3
-    volumes:
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    image: mysql:5.7
     environment:
-      - SQLITE_DATABASE=db
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=mydb
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
