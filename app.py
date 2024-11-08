@@ -1,21 +1,48 @@
-from flask import Flask
-import sqlite3
+from flask import Flask, jsonify, request
+from flask_mysqldb import MySQL
+import os
 
 app = Flask(__name__)
 
-def get_db_connection():
-    conn = sqlite3.connect('database.db')
-    conn.row_factory = sqlite3.Row
-    return conn
+# MySQL configurations from environment variables
+app.config['MYSQL_HOST'] = os.environ.get('MYSQL_HOST', 'db')
+app.config['MYSQL_USER'] = os.environ.get('MYSQL_USER', 'root')
+app.config['MYSQL_PASSWORD'] = os.environ.get('MYSQL_PASSWORD', 'root')
+app.config['MYSQL_DB'] = os.environ.get('MYSQL_DB', 'mydb')
+
+mysql = MySQL(app)
 
 @app.route('/')
 def index():
-    conn = get_db_connection()
-    cur = conn.cursor()
-    cur.execute("SELECT * FROM my_table")
-    rows = cur.fetchall()
-    conn.close()
-    return {"data": [dict(row) for row in rows]}
+    return jsonify({"message": "Welcome to Flask-MySQL App"})
+
+@app.route('/users', methods=['GET'])
+def get_users():
+    cur = mysql.connection.cursor()
+    cur.execute('''SELECT * FROM users''')
+    users = cur.fetchall()
+    cur.close()
+    
+    users_list = []
+    for user in users:
+        users_list.append({
+            'id': user[0],
+            'name': user[1],
+            'email': user[2],
+            'created_at': str(user[3])
+        })
+    
+    return jsonify(users_list)
+
+@app.route('/users', methods=['POST'])
+def add_user():
+    user_data = request.json
+    cur = mysql.connection.cursor()
+    cur.execute('''INSERT INTO users (name, email) VALUES (%s, %s)''',
+                (user_data['name'], user_data['email']))
+    mysql.connection.commit()
+    cur.close()
+    return jsonify({"message": "User added successfully"}), 201
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', debug=True)
