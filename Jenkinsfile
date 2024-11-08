@@ -27,7 +27,8 @@ pipeline {
         stage('Build Docker Images') {
             steps {
                 script {
-                    sh 'docker-compose build'
+                    // Add --pull option to force pulling the latest image
+                    sh 'docker-compose build --pull'
                 }
             }
         }
