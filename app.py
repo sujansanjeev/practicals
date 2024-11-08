@@ -14,7 +14,7 @@ mysql = MySQL(app)
 
 @app.route('/')
 def index():
-    return jsonify({"message": "Welcome to Flask-MySQL App,hi"})
+    return jsonify({"message": "Welcome to Flask-MySQL App,hi,how are you"})
 
 @app.route('/users', methods=['GET'])
 def get_users():
